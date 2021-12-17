@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "myjenkins.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+      - name: jenkins
+        image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+        env:
+          - name: JENKINS_USERNAME
+            value: {{ default "admin" .Values.jenkinsUsername | quote }}
+          - name: JENKINS_PASSWORD
+            {{- if .Values.jenkinsPassword }}
+            value: {{ .Values.jenkinsPassword | quote }}
+            {{- else }}
+            value: testPassword
+            {{- end }}
+        ports:
+         {{- range .Values.containerPorts }}
+         - name: {{ .name }} 
+           containerPort: {{ .port }}
+         {{- end}}
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
